@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: dindin
+
+  datasource:
+    url: jdbc:postgresql://ep-small-hall-b8zzaexd-pooler.c-14.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    locations: classpath:db/migration
+    baseline-on-migrate: true
