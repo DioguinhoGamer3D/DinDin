@@ -33,6 +33,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(corpoErro(mensagem, HttpStatus.BAD_REQUEST));
     }
 
+    @ExceptionHandler(RecursoNaoEncontradoException.class)
+    public ResponseEntity<Map<String, Object>> handleRecursoNaoEncontrado(RecursoNaoEncontradoException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(corpoErro(ex.getMessage(), HttpStatus.NOT_FOUND));
+    }
+
     private Map<String, Object> corpoErro(String mensagem, HttpStatus status) {
         Map<String, Object> corpo = new LinkedHashMap<>();
         corpo.put("timestamp", Instant.now());
