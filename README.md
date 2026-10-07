@@ -29,7 +29,7 @@ DinDin/
 
 - [x] **Fase 1** — Modelo de dados (entidades JPA, migrations Flyway, repositórios)
 - [x] **Fase 2** — Autenticação JWT (registro, login, rotas protegidas)
-- [ ] Fase 3 — CRUD de categorias e transações
+- [x] **Fase 3** — CRUD de categorias e transações
 - [ ] Fase 4-7 — Frontend, PWA e deploy
 
 ## ⚙️ Configuração
@@ -75,3 +75,29 @@ Authorization: Bearer <token>
 ```
 
 **Regras de senha:** mínimo 8 caracteres, pelo menos 1 letra maiúscula e 1 número.
+
+## 📚 Endpoints (Fase 3)
+
+Todas as rotas abaixo exigem o header `Authorization: Bearer <token>`.
+Dados de outro usuário nunca são expostos: o acesso a um recurso alheio retorna **404**.
+
+### Categorias
+
+| Método | Rota | Descrição | Respostas |
+|---|---|---|---|
+| GET | `/categorias` | Lista as categorias do usuário | 200 |
+| POST | `/categorias` | Cria uma categoria | 201, 400 |
+| PUT | `/categorias/{id}` | Atualiza uma categoria | 200, 400, 404 |
+| DELETE | `/categorias/{id}` | Remove uma categoria | 204, 404, 409 (em uso) |
+
+### Transações
+
+| Método | Rota | Descrição | Respostas |
+|---|---|---|---|
+| GET | `/transacoes?mes=AAAA-MM` | Lista as transações do mês, mais recentes primeiro | 200, 400 |
+| POST | `/transacoes` | Cria uma transação | 201, 400, 404 |
+| PUT | `/transacoes/{id}` | Atualiza uma transação | 200, 400, 404 |
+| DELETE | `/transacoes/{id}` | Remove uma transação | 204, 404 |
+
+**Regras:** o `tipo` da transação deve ser igual ao tipo da categoria (400 se diferir);
+a categoria deve pertencer ao usuário (404 se não); `valor` deve ser positivo, com até 2 casas decimais.
