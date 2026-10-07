@@ -13,6 +13,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import com.diogo.dindin.exception.CategoriaEmUsoException;
+import com.diogo.dindin.repository.TransacaoRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -25,6 +27,9 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class CategoriaServiceTest {
+
+    @Mock
+    private TransacaoRepository transacaoRepository;
 
     @Mock
     private CategoriaRepository categoriaRepository;
@@ -109,6 +114,7 @@ class CategoriaServiceTest {
         Categoria existente = criarCategoria("Lazer", TipoTransacao.DESPESA);
         when(categoriaRepository.findByIdAndUserId(existente.getId(), userId))
                 .thenReturn(Optional.of(existente));
+        when(transacaoRepository.existsByCategoriaId(existente.getId())).thenReturn(false);
 
         categoriaService.deletar(userId, existente.getId());
 
@@ -132,5 +138,18 @@ class CategoriaServiceTest {
                 .nome(nome)
                 .tipo(tipo)
                 .build();
+    }
+
+    @Test
+    void naoDeveDeletarCategoriaEmUso() {
+        Categoria existente = criarCategoria("Mercado", TipoTransacao.DESPESA);
+        when(categoriaRepository.findByIdAndUserId(existente.getId(), userId))
+                .thenReturn(Optional.of(existente));
+        when(transacaoRepository.existsByCategoriaId(existente.getId())).thenReturn(true);
+
+        assertThatThrownBy(() -> categoriaService.deletar(userId, existente.getId()))
+                .isInstanceOf(CategoriaEmUsoException.class);
+
+        verify(categoriaRepository, never()).delete(any());
     }
 }

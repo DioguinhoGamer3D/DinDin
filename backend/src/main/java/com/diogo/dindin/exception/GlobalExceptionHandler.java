@@ -46,4 +46,9 @@ public class GlobalExceptionHandler {
         corpo.put("mensagem", mensagem);
         return corpo;
     }
+
+    @ExceptionHandler(CategoriaEmUsoException.class)
+    public ResponseEntity<Map<String, Object>> handleCategoriaEmUso(CategoriaEmUsoException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(corpoErro(ex.getMessage(), HttpStatus.CONFLICT));
+    }
 }

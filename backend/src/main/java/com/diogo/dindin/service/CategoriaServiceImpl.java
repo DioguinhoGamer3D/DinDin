@@ -2,9 +2,11 @@ package com.diogo.dindin.service;
 
 import com.diogo.dindin.dto.CategoriaRequest;
 import com.diogo.dindin.dto.CategoriaResponse;
+import com.diogo.dindin.exception.CategoriaEmUsoException;
 import com.diogo.dindin.exception.RecursoNaoEncontradoException;
 import com.diogo.dindin.model.Categoria;
 import com.diogo.dindin.repository.CategoriaRepository;
+import com.diogo.dindin.repository.TransacaoRepository;
 import com.diogo.dindin.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,8 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class CategoriaServiceImpl implements CategoriaService {
+
+    private final TransacaoRepository transacaoRepository;
 
     private final CategoriaRepository categoriaRepository;
     private final UserRepository userRepository;
@@ -54,6 +58,11 @@ public class CategoriaServiceImpl implements CategoriaService {
     @Transactional
     public void deletar(UUID userId, UUID id) {
         Categoria categoria = buscarDoUsuario(userId, id);
+
+        if (transacaoRepository.existsByCategoriaId(id)) {
+            throw new CategoriaEmUsoException();
+        }
+
         categoriaRepository.delete(categoria);
     }
 

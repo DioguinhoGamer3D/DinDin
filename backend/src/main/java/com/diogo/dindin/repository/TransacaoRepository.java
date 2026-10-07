@@ -9,4 +9,5 @@ import java.util.UUID;
 
 public interface TransacaoRepository extends JpaRepository<Transacao, UUID> {
     List<Transacao> findByUserIdAndDataBetween(UUID userId, LocalDate inicio, LocalDate fim);
+    boolean existsByCategoriaId(UUID categoriaId);
 }
