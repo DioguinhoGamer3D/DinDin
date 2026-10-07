@@ -51,4 +51,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleCategoriaEmUso(CategoriaEmUsoException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(corpoErro(ex.getMessage(), HttpStatus.CONFLICT));
     }
+
+    @ExceptionHandler(TipoIncompativelException.class)
+    public ResponseEntity<Map<String, Object>> handleTipoIncompativel(TipoIncompativelException ex) {
+        return ResponseEntity.badRequest().body(corpoErro(ex.getMessage(), HttpStatus.BAD_REQUEST));
+    }
 }
