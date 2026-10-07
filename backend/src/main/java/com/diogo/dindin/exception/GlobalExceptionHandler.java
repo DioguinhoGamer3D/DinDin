@@ -33,6 +33,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(corpoErro(mensagem, HttpStatus.BAD_REQUEST));
     }
 
+    @ExceptionHandler(RecursoNaoEncontradoException.class)
+    public ResponseEntity<Map<String, Object>> handleRecursoNaoEncontrado(RecursoNaoEncontradoException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(corpoErro(ex.getMessage(), HttpStatus.NOT_FOUND));
+    }
+
     private Map<String, Object> corpoErro(String mensagem, HttpStatus status) {
         Map<String, Object> corpo = new LinkedHashMap<>();
         corpo.put("timestamp", Instant.now());
@@ -40,5 +45,15 @@ public class GlobalExceptionHandler {
         corpo.put("erro", status.getReasonPhrase());
         corpo.put("mensagem", mensagem);
         return corpo;
+    }
+
+    @ExceptionHandler(CategoriaEmUsoException.class)
+    public ResponseEntity<Map<String, Object>> handleCategoriaEmUso(CategoriaEmUsoException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(corpoErro(ex.getMessage(), HttpStatus.CONFLICT));
+    }
+
+    @ExceptionHandler(TipoIncompativelException.class)
+    public ResponseEntity<Map<String, Object>> handleTipoIncompativel(TipoIncompativelException ex) {
+        return ResponseEntity.badRequest().body(corpoErro(ex.getMessage(), HttpStatus.BAD_REQUEST));
     }
 }

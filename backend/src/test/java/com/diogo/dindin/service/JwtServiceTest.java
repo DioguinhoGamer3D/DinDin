@@ -99,4 +99,19 @@ class JwtServiceTest {
 
         assertThat(servicoComOutraChave.validarToken(token)).isFalse();
     }
+
+    @Test
+    void deveExtrairUserIdCorretoDoToken() {
+        UUID id = UUID.randomUUID();
+        User user = User.builder()
+                .id(id)
+                .nome("Diogo")
+                .email("diogo@teste.com")
+                .senha("hash")
+                .build();
+
+        String token = jwtService.gerarToken(user);
+
+        assertThat(jwtService.extrairUserId(token)).isEqualTo(id);
+    }
 }

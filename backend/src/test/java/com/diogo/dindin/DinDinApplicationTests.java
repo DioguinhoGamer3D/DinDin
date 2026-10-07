@@ -1,13 +1,12 @@
 package com.diogo.dindin;
 
+import com.diogo.dindin.repository.IntegrationTestBase;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
-class DinDinApplicationTests {
+class DinDinApplicationTests extends IntegrationTestBase {
 
-	@Test
-	void contextLoads() {
-	}
+    @Test
+    void contextLoads() {
+    }
 
 }

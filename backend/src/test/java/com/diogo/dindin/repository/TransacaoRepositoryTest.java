@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class TransacaoRepositoryTest extends IntegrationTestBase {
 
@@ -54,5 +54,17 @@ class TransacaoRepositoryTest extends IntegrationTestBase {
                 .categoria(categoria)
                 .user(user)
                 .build();
+    }
+
+    @Test
+    void deveVerificarSeCategoriaPossuiTransacoes() {
+        User user = criarUsuario("uso@teste.com");
+        Categoria emUso = categoriaRepository.save(criarCategoria("Mercado", user));
+        Categoria livre = categoriaRepository.save(criarCategoria("Livre", user));
+
+        transacaoRepository.save(criarTransacao(user, emUso, LocalDate.of(2026, 9, 5), new BigDecimal("10.00")));
+
+        assertThat(transacaoRepository.existsByCategoriaId(emUso.getId())).isTrue();
+        assertThat(transacaoRepository.existsByCategoriaId(livre.getId())).isFalse();
     }
 }
