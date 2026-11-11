@@ -124,6 +124,17 @@ class IsolamentoEntreUsuariosTest extends IntegrationTestBase {
     }
 
     @Test
+    void deveSalvarEDevolverAsObservacoesDaTransacao() throws Exception {
+        String categoriaA = criarCategoria(tokenA, "Alimentacao", "DESPESA");
+        criarTransacao(tokenA, categoriaA, "DESPESA");
+
+        mockMvc.perform(get("/transacoes").param("mes", "2026-09")
+                        .header(AUTHORIZATION, bearer(tokenA)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].observacoes").value("Compras do mes"));
+    }
+
+    @Test
     void usuarioNaoDeveEditarTransacaoDeOutroUsuario() throws Exception {
         String categoriaA = criarCategoria(tokenA, "Alimentacao", "DESPESA");
         String transacaoA = criarTransacao(tokenA, categoriaA, "DESPESA");
@@ -212,8 +223,8 @@ class IsolamentoEntreUsuariosTest extends IntegrationTestBase {
 
     private String criarTransacao(String token, String categoriaId, String tipo) throws Exception {
         String corpo = """
-                {"descricao":"Mercado","valor":89.90,"data":"2026-09-05","tipo":"%s","categoriaId":"%s"}
-                """.formatted(tipo, categoriaId);
+        {"descricao":"Mercado","valor":89.90,"data":"2026-09-05","tipo":"%s","categoriaId":"%s","observacoes":"Compras do mes"}
+        """.formatted(tipo, categoriaId);
 
         String resposta = mockMvc.perform(post("/transacoes")
                         .header(AUTHORIZATION, bearer(token))

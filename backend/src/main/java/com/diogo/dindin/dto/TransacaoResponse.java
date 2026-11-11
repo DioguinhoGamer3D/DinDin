@@ -13,6 +13,7 @@ public record TransacaoResponse(
         LocalDate data,
         TipoTransacao tipo,
         UUID categoriaId,
-        String categoriaNome
+        String categoriaNome,
+        String observacoes
 ) {
 }

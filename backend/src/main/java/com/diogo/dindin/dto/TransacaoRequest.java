@@ -24,6 +24,9 @@ public record TransacaoRequest(
         TipoTransacao tipo,
 
         @NotNull(message = "Categoria é obrigatória")
-        UUID categoriaId
+        UUID categoriaId,
+
+        @Size(max = 500, message = "Observações deve ter no máximo 500 caracteres")
+        String observacoes
 ) {
 }
