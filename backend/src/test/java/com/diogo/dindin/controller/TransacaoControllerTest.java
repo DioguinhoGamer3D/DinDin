@@ -70,7 +70,7 @@ class TransacaoControllerTest {
     @Test
     void deveRejeitarRequisicaoSemAutenticacao() throws Exception {
         mockMvc.perform(get("/transacoes").param("mes", "2026-09"))
-                .andExpect(status().is4xxClientError());
+                .andExpect(status().isUnauthorized());
 
         verifyNoInteractions(transacaoService);
     }

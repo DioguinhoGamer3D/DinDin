@@ -58,7 +58,7 @@ class CategoriaControllerTest {
     @Test
     void deveRejeitarRequisicaoSemAutenticacao() throws Exception {
         mockMvc.perform(get("/categorias"))
-                .andExpect(status().is4xxClientError());
+                .andExpect(status().isUnauthorized());
 
         verifyNoInteractions(categoriaService);
     }

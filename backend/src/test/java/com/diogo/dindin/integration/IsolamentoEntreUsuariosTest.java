@@ -36,13 +36,13 @@ class IsolamentoEntreUsuariosTest extends IntegrationTestBase {
     @Test
     void deveRejeitarRequisicaoSemTokenOuComTokenInvalido() throws Exception {
         mockMvc.perform(get("/categorias"))
-                .andExpect(status().is4xxClientError());
+                .andExpect(status().isUnauthorized());
 
         mockMvc.perform(get("/categorias").header(AUTHORIZATION, "Bearer token-invalido"))
-                .andExpect(status().is4xxClientError());
+                .andExpect(status().isUnauthorized());
 
         mockMvc.perform(get("/transacoes").param("mes", "2026-09"))
-                .andExpect(status().is4xxClientError());
+                .andExpect(status().isUnauthorized());
     }
 
     // ---------- CATEGORIAS ----------
