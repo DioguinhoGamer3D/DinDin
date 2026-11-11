@@ -69,13 +69,14 @@ class CategoriaControllerTest {
     void deveListarCategoriasDoUsuarioLogado() throws Exception {
         UUID id = UUID.randomUUID();
         when(categoriaService.listar(userId))
-                .thenReturn(List.of(new CategoriaResponse(id, "Mercado", TipoTransacao.DESPESA)));
+                .thenReturn(List.of(new CategoriaResponse(id, "Mercado", TipoTransacao.DESPESA, "#EF4444")));
 
         mockMvc.perform(get("/categorias").with(logado()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(id.toString()))
                 .andExpect(jsonPath("$[0].nome").value("Mercado"))
-                .andExpect(jsonPath("$[0].tipo").value("DESPESA"));
+                .andExpect(jsonPath("$[0].tipo").value("DESPESA"))
+                .andExpect(jsonPath("$[0].cor").value("#EF4444"));
     }
 
     // ---------- CRIAR ----------
@@ -83,9 +84,9 @@ class CategoriaControllerTest {
     @Test
     void deveCriarCategoriaERetornar201() throws Exception {
         UUID id = UUID.randomUUID();
-        CategoriaRequest request = new CategoriaRequest("Salario", TipoTransacao.RECEITA);
+        CategoriaRequest request = new CategoriaRequest("Salario", TipoTransacao.RECEITA, "#10B981");
         when(categoriaService.criar(eq(userId), any(CategoriaRequest.class)))
-                .thenReturn(new CategoriaResponse(id, "Salario", TipoTransacao.RECEITA));
+                .thenReturn(new CategoriaResponse(id, "Salario", TipoTransacao.RECEITA, "#10B981"));
 
         mockMvc.perform(post("/categorias")
                         .with(logado())
@@ -93,12 +94,14 @@ class CategoriaControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(id.toString()))
-                .andExpect(jsonPath("$.nome").value("Salario"));
+                .andExpect(jsonPath("$.nome").value("Salario"))
+                .andExpect(jsonPath("$.tipo").value("RECEITA"))
+                .andExpect(jsonPath("$.cor").value("#10B981"));
     }
 
     @Test
     void deveRetornar400QuandoNomeVazio() throws Exception {
-        CategoriaRequest request = new CategoriaRequest("", TipoTransacao.DESPESA);
+        CategoriaRequest request = new CategoriaRequest("", TipoTransacao.DESPESA, "#10B981");
 
         mockMvc.perform(post("/categorias")
                         .with(logado())
@@ -114,9 +117,9 @@ class CategoriaControllerTest {
     @Test
     void deveAtualizarCategoriaERetornar200() throws Exception {
         UUID id = UUID.randomUUID();
-        CategoriaRequest request = new CategoriaRequest("Novo nome", TipoTransacao.DESPESA);
+        CategoriaRequest request = new CategoriaRequest("Novo nome", TipoTransacao.DESPESA, "#10B981");
         when(categoriaService.atualizar(eq(userId), eq(id), any(CategoriaRequest.class)))
-                .thenReturn(new CategoriaResponse(id, "Novo nome", TipoTransacao.DESPESA));
+                .thenReturn(new CategoriaResponse(id, "Novo nome", TipoTransacao.DESPESA, "#10B981"));
 
         mockMvc.perform(put("/categorias/{id}", id)
                         .with(logado())
@@ -129,7 +132,7 @@ class CategoriaControllerTest {
     @Test
     void deveRetornar404AoAtualizarCategoriaInexistenteOuDeOutroUsuario() throws Exception {
         UUID id = UUID.randomUUID();
-        CategoriaRequest request = new CategoriaRequest("Qualquer", TipoTransacao.DESPESA);
+        CategoriaRequest request = new CategoriaRequest("Qualquer", TipoTransacao.DESPESA, "#10B981");
         when(categoriaService.atualizar(eq(userId), eq(id), any(CategoriaRequest.class)))
                 .thenThrow(new RecursoNaoEncontradoException("Categoria"));
 

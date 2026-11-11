@@ -3,6 +3,7 @@ package com.diogo.dindin.dto;
 import com.diogo.dindin.model.TipoTransacao;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public record CategoriaRequest(
@@ -11,6 +12,10 @@ public record CategoriaRequest(
         String nome,
 
         @NotNull(message = "Tipo é obrigatório")
-        TipoTransacao tipo
+        TipoTransacao tipo,
+
+        @NotBlank(message = "Cor é obrigatória")
+        @Pattern(regexp = "^#[0-9A-Fa-f]{6}$", message = "Cor deve estar no formato #RRGGBB")
+        String cor
 ) {
 }

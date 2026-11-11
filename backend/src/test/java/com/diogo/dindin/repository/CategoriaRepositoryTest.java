@@ -39,6 +39,6 @@ class CategoriaRepositoryTest extends IntegrationTestBase {
 
     private Categoria criarCategoria(String nome, TipoTransacao tipo, User dono) {
         return Categoria.builder()
-                .nome(nome).tipo(tipo).user(dono).build();
+                .nome(nome).tipo(tipo).user(dono).cor("#10B981").build();
     }
 }

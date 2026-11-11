@@ -54,6 +54,7 @@ class CategoriaServiceTest {
         assertThat(resultado).hasSize(1);
         assertThat(resultado.get(0).nome()).isEqualTo("Alimentação");
         assertThat(resultado.get(0).tipo()).isEqualTo(TipoTransacao.DESPESA);
+        assertThat(resultado.get(0).cor()).isEqualTo("#EF4444");
     }
 
     // ---------- CRIAR ----------
@@ -69,14 +70,18 @@ class CategoriaServiceTest {
         });
 
         CategoriaResponse resposta = categoriaService.criar(userId,
-                new CategoriaRequest("Salário", TipoTransacao.RECEITA));
+                new CategoriaRequest("Salário", TipoTransacao.RECEITA, "#10B981"));
 
         assertThat(resposta.id()).isNotNull();
         assertThat(resposta.nome()).isEqualTo("Salário");
+        assertThat(resposta.cor()).isEqualTo("#10B981");
 
         verify(categoriaRepository).save(argThat(c ->
-                c.getUser().getId().equals(userId) && c.getTipo() == TipoTransacao.RECEITA));
+                c.getUser().getId().equals(userId)
+                        && c.getTipo() == TipoTransacao.RECEITA
+                        && c.getCor().equals("#10B981")));
     }
+
 
     // ---------- ATUALIZAR ----------
 
@@ -89,10 +94,11 @@ class CategoriaServiceTest {
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         CategoriaResponse resposta = categoriaService.atualizar(userId, existente.getId(),
-                new CategoriaRequest("Novo", TipoTransacao.RECEITA));
+                new CategoriaRequest("Novo", TipoTransacao.RECEITA, "#3B82F6"));
 
         assertThat(resposta.nome()).isEqualTo("Novo");
         assertThat(resposta.tipo()).isEqualTo(TipoTransacao.RECEITA);
+        assertThat(resposta.cor()).isEqualTo("#3B82F6");
     }
 
     @Test
@@ -101,7 +107,7 @@ class CategoriaServiceTest {
         when(categoriaRepository.findByIdAndUserId(id, userId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> categoriaService.atualizar(userId, id,
-                new CategoriaRequest("Qualquer", TipoTransacao.DESPESA)))
+                new CategoriaRequest("Qualquer", TipoTransacao.DESPESA, "#3B82F6")))
                 .isInstanceOf(RecursoNaoEncontradoException.class);
 
         verify(categoriaRepository, never()).save(any());
@@ -137,6 +143,7 @@ class CategoriaServiceTest {
                 .id(UUID.randomUUID())
                 .nome(nome)
                 .tipo(tipo)
+                .cor("#EF4444")
                 .build();
     }
 

@@ -67,7 +67,7 @@ class IsolamentoEntreUsuariosTest extends IntegrationTestBase {
         mockMvc.perform(put("/categorias/{id}", categoriaA)
                         .header(AUTHORIZATION, bearer(tokenB))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"nome\":\"Alterada\",\"tipo\":\"DESPESA\"}"))
+                        .content("{\"nome\":\"Alterada\",\"tipo\":\"DESPESA\",\"cor\":\"#10B981\"}"))
                 .andExpect(status().isNotFound());
 
         mockMvc.perform(get("/categorias").header(AUTHORIZATION, bearer(tokenA)))
@@ -94,6 +94,15 @@ class IsolamentoEntreUsuariosTest extends IntegrationTestBase {
         mockMvc.perform(delete("/categorias/{id}", categoriaA)
                         .header(AUTHORIZATION, bearer(tokenA)))
                 .andExpect(status().isConflict());
+    }
+
+    @Test
+    void deveSalvarEDevolverACorDaCategoria() throws Exception {
+        criarCategoria(tokenA, "Alimentacao", "DESPESA");
+
+        mockMvc.perform(get("/categorias").header(AUTHORIZATION, bearer(tokenA)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].cor").value("#10B981"));
     }
 
     // ---------- TRANSAÇÕES ----------
@@ -188,7 +197,7 @@ class IsolamentoEntreUsuariosTest extends IntegrationTestBase {
 
     private String criarCategoria(String token, String nome, String tipo) throws Exception {
         String corpo = """
-                {"nome":"%s","tipo":"%s"}
+                {"nome":"%s","tipo":"%s","cor":"#10B981"}
                 """.formatted(nome, tipo);
 
         String resposta = mockMvc.perform(post("/categorias")

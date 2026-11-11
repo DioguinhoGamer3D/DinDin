@@ -39,6 +39,7 @@ public class CategoriaServiceImpl implements CategoriaService {
                 .nome(request.nome())
                 .tipo(request.tipo())
                 .user(userRepository.getReferenceById(userId))
+                .cor(request.cor())
                 .build();
 
         return paraResponse(categoriaRepository.save(categoria));
@@ -50,6 +51,7 @@ public class CategoriaServiceImpl implements CategoriaService {
         Categoria categoria = buscarDoUsuario(userId, id);
         categoria.setNome(request.nome());
         categoria.setTipo(request.tipo());
+        categoria.setCor(request.cor());
 
         return paraResponse(categoriaRepository.save(categoria));
     }
@@ -72,6 +74,6 @@ public class CategoriaServiceImpl implements CategoriaService {
     }
 
     private CategoriaResponse paraResponse(Categoria categoria) {
-        return new CategoriaResponse(categoria.getId(), categoria.getNome(), categoria.getTipo());
+        return new CategoriaResponse(categoria.getId(), categoria.getNome(), categoria.getTipo(), categoria.getCor());
     }
 }
