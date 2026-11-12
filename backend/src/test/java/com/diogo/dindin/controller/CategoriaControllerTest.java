@@ -165,4 +165,19 @@ class CategoriaControllerTest {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.status").value(409));
     }
+
+    @Test
+    void deveRetornar409AoAlterarOTipoDeCategoriaEmUso() throws Exception {
+        UUID id = UUID.randomUUID();
+        CategoriaRequest request = new CategoriaRequest("Mercado", TipoTransacao.RECEITA, "#EF4444");
+        when(categoriaService.atualizar(eq(userId), eq(id), any(CategoriaRequest.class)))
+                .thenThrow(new CategoriaEmUsoException("Tipo nao pode ser alterado"));
+
+        mockMvc.perform(put("/categorias/{id}", id)
+                        .with(logado())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value(409));
+    }
 }

@@ -49,6 +49,13 @@ public class CategoriaServiceImpl implements CategoriaService {
     @Transactional
     public CategoriaResponse atualizar(UUID userId, UUID id, CategoriaRequest request) {
         Categoria categoria = buscarDoUsuario(userId, id);
+
+        boolean mudouOTipo = categoria.getTipo() != request.tipo();
+        if (mudouOTipo && transacaoRepository.existsByCategoriaId(id)) {
+            throw new CategoriaEmUsoException(
+                    "Não é possível alterar o tipo de uma categoria que possui transações vinculadas");
+        }
+
         categoria.setNome(request.nome());
         categoria.setTipo(request.tipo());
         categoria.setCor(request.cor());

@@ -104,6 +104,35 @@ class IsolamentoEntreUsuariosTest extends IntegrationTestBase {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].cor").value("#10B981"));
     }
+    @Test
+    void naoDeveAlterarOTipoDeCategoriaEmUso() throws Exception {
+        String categoriaA = criarCategoria(tokenA, "Alimentacao", "DESPESA");
+        criarTransacao(tokenA, categoriaA, "DESPESA");
+
+        mockMvc.perform(put("/categorias/{id}", categoriaA)
+                        .header(AUTHORIZATION, bearer(tokenA))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nome\":\"Alimentacao\",\"tipo\":\"RECEITA\",\"cor\":\"#10B981\"}"))
+                .andExpect(status().isConflict());
+
+        // o tipo continua o original
+        mockMvc.perform(get("/categorias").header(AUTHORIZATION, bearer(tokenA)))
+                .andExpect(jsonPath("$[0].tipo").value("DESPESA"));
+    }
+
+    @Test
+    void deveAlterarNomeECorDeCategoriaEmUsoSemMudarOTipo() throws Exception {
+        String categoriaA = criarCategoria(tokenA, "Alimentacao", "DESPESA");
+        criarTransacao(tokenA, categoriaA, "DESPESA");
+
+        mockMvc.perform(put("/categorias/{id}", categoriaA)
+                        .header(AUTHORIZATION, bearer(tokenA))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nome\":\"Mercado\",\"tipo\":\"DESPESA\",\"cor\":\"#3B82F6\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nome").value("Mercado"))
+                .andExpect(jsonPath("$.cor").value("#3B82F6"));
+    }
 
     // ---------- TRANSAÇÕES ----------
 
