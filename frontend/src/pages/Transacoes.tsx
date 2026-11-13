@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ChevronDown, Pencil, Plus, Search, Trash2 } from 'lucide-react'
+import { useLocation, useNavigate } from 'react-router'
 import AlertaDeErro from '../components/AlertaDeErro'
 import ModalConfirmacao from '../components/ModalConfirmacao'
 import ModalTransacao from '../components/ModalTransacao'
@@ -21,6 +22,9 @@ import type { Categoria, DadosDaTransacao, TipoTransacao, Transacao } from '../t
 export default function Transacoes() {
   const { mostrarToast } = useToast()
 
+  const location = useLocation()
+  const navigate = useNavigate()
+
   const [mes, setMes] = useState(mesAtual)
   const [categorias, setCategorias] = useState<Categoria[]>([])
   const [transacoes, setTransacoes] = useState<Transacao[]>([])
@@ -32,9 +36,15 @@ export default function Transacoes() {
   const [categoriaFiltro, setCategoriaFiltro] = useState('TODAS')
   const [tipoFiltro, setTipoFiltro] = useState<'TODOS' | TipoTransacao>('TODOS')
 
-  const [modalAberto, setModalAberto] = useState(false)
+  const [modalAberto, setModalAberto] = useState(() => location.state?.abrirModal === true)
   const [editando, setEditando] = useState<Transacao | null>(null)
   const [excluindo, setExcluindo] = useState<Transacao | null>(null)
+
+  useEffect(() => {
+    if (location.state?.abrirModal) {
+      navigate(location.pathname, { replace: true, state: null })
+    }
+  }, [location.pathname, location.state, navigate])
 
   useEffect(() => {
     let ativo = true
