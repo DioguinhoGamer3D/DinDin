@@ -36,13 +36,13 @@ class IsolamentoEntreUsuariosTest extends IntegrationTestBase {
     @Test
     void deveRejeitarRequisicaoSemTokenOuComTokenInvalido() throws Exception {
         mockMvc.perform(get("/categorias"))
-                .andExpect(status().is4xxClientError());
+                .andExpect(status().isUnauthorized());
 
         mockMvc.perform(get("/categorias").header(AUTHORIZATION, "Bearer token-invalido"))
-                .andExpect(status().is4xxClientError());
+                .andExpect(status().isUnauthorized());
 
         mockMvc.perform(get("/transacoes").param("mes", "2026-09"))
-                .andExpect(status().is4xxClientError());
+                .andExpect(status().isUnauthorized());
     }
 
     // ---------- CATEGORIAS ----------
@@ -67,7 +67,7 @@ class IsolamentoEntreUsuariosTest extends IntegrationTestBase {
         mockMvc.perform(put("/categorias/{id}", categoriaA)
                         .header(AUTHORIZATION, bearer(tokenB))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"nome\":\"Alterada\",\"tipo\":\"DESPESA\"}"))
+                        .content("{\"nome\":\"Alterada\",\"tipo\":\"DESPESA\",\"cor\":\"#10B981\"}"))
                 .andExpect(status().isNotFound());
 
         mockMvc.perform(get("/categorias").header(AUTHORIZATION, bearer(tokenA)))
@@ -96,6 +96,44 @@ class IsolamentoEntreUsuariosTest extends IntegrationTestBase {
                 .andExpect(status().isConflict());
     }
 
+    @Test
+    void deveSalvarEDevolverACorDaCategoria() throws Exception {
+        criarCategoria(tokenA, "Alimentacao", "DESPESA");
+
+        mockMvc.perform(get("/categorias").header(AUTHORIZATION, bearer(tokenA)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].cor").value("#10B981"));
+    }
+    @Test
+    void naoDeveAlterarOTipoDeCategoriaEmUso() throws Exception {
+        String categoriaA = criarCategoria(tokenA, "Alimentacao", "DESPESA");
+        criarTransacao(tokenA, categoriaA, "DESPESA");
+
+        mockMvc.perform(put("/categorias/{id}", categoriaA)
+                        .header(AUTHORIZATION, bearer(tokenA))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nome\":\"Alimentacao\",\"tipo\":\"RECEITA\",\"cor\":\"#10B981\"}"))
+                .andExpect(status().isConflict());
+
+        // o tipo continua o original
+        mockMvc.perform(get("/categorias").header(AUTHORIZATION, bearer(tokenA)))
+                .andExpect(jsonPath("$[0].tipo").value("DESPESA"));
+    }
+
+    @Test
+    void deveAlterarNomeECorDeCategoriaEmUsoSemMudarOTipo() throws Exception {
+        String categoriaA = criarCategoria(tokenA, "Alimentacao", "DESPESA");
+        criarTransacao(tokenA, categoriaA, "DESPESA");
+
+        mockMvc.perform(put("/categorias/{id}", categoriaA)
+                        .header(AUTHORIZATION, bearer(tokenA))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nome\":\"Mercado\",\"tipo\":\"DESPESA\",\"cor\":\"#3B82F6\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nome").value("Mercado"))
+                .andExpect(jsonPath("$.cor").value("#3B82F6"));
+    }
+
     // ---------- TRANSAÇÕES ----------
 
     @Test
@@ -112,6 +150,17 @@ class IsolamentoEntreUsuariosTest extends IntegrationTestBase {
                         .header(AUTHORIZATION, bearer(tokenA)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1));
+    }
+
+    @Test
+    void deveSalvarEDevolverAsObservacoesDaTransacao() throws Exception {
+        String categoriaA = criarCategoria(tokenA, "Alimentacao", "DESPESA");
+        criarTransacao(tokenA, categoriaA, "DESPESA");
+
+        mockMvc.perform(get("/transacoes").param("mes", "2026-09")
+                        .header(AUTHORIZATION, bearer(tokenA)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].observacoes").value("Compras do mes"));
     }
 
     @Test
@@ -188,7 +237,7 @@ class IsolamentoEntreUsuariosTest extends IntegrationTestBase {
 
     private String criarCategoria(String token, String nome, String tipo) throws Exception {
         String corpo = """
-                {"nome":"%s","tipo":"%s"}
+                {"nome":"%s","tipo":"%s","cor":"#10B981"}
                 """.formatted(nome, tipo);
 
         String resposta = mockMvc.perform(post("/categorias")
@@ -203,8 +252,8 @@ class IsolamentoEntreUsuariosTest extends IntegrationTestBase {
 
     private String criarTransacao(String token, String categoriaId, String tipo) throws Exception {
         String corpo = """
-                {"descricao":"Mercado","valor":89.90,"data":"2026-09-05","tipo":"%s","categoriaId":"%s"}
-                """.formatted(tipo, categoriaId);
+        {"descricao":"Mercado","valor":89.90,"data":"2026-09-05","tipo":"%s","categoriaId":"%s","observacoes":"Compras do mes"}
+        """.formatted(tipo, categoriaId);
 
         String resposta = mockMvc.perform(post("/transacoes")
                         .header(AUTHORIZATION, bearer(token))

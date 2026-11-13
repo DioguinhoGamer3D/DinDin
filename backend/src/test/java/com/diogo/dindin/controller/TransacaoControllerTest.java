@@ -56,13 +56,13 @@ class TransacaoControllerTest {
     // JSON escrito à mão: testa também o contrato da API (nomes dos campos e formato da data)
     private String corpo(String valor, String tipo) {
         return """
-                {"descricao":"Mercado","valor":%s,"data":"2026-09-05","tipo":"%s","categoriaId":"%s"}
-                """.formatted(valor, tipo, categoriaId);
+            {"descricao":"Mercado","valor":%s,"data":"2026-09-05","tipo":"%s","categoriaId":"%s","observacoes":"Compras do mes"}
+            """.formatted(valor, tipo, categoriaId);
     }
 
     private TransacaoResponse respostaPadrao(UUID id) {
         return new TransacaoResponse(id, "Mercado", new BigDecimal("89.90"),
-                LocalDate.of(2026, 9, 5), TipoTransacao.DESPESA, categoriaId, "Alimentacao");
+                LocalDate.of(2026, 9, 5), TipoTransacao.DESPESA, categoriaId, "Alimentacao", "Compras do mes");
     }
 
     // ---------- SEGURANÇA ----------
@@ -70,7 +70,7 @@ class TransacaoControllerTest {
     @Test
     void deveRejeitarRequisicaoSemAutenticacao() throws Exception {
         mockMvc.perform(get("/transacoes").param("mes", "2026-09"))
-                .andExpect(status().is4xxClientError());
+                .andExpect(status().isUnauthorized());
 
         verifyNoInteractions(transacaoService);
     }
@@ -121,7 +121,8 @@ class TransacaoControllerTest {
                         .content(corpo("89.90", "DESPESA")))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(id.toString()))
-                .andExpect(jsonPath("$.categoriaId").value(categoriaId.toString()));
+                .andExpect(jsonPath("$.categoriaId").value(categoriaId.toString()))
+                .andExpect(jsonPath("$.observacoes").value("Compras do mes"));
     }
 
     @Test
@@ -159,6 +160,37 @@ class TransacaoControllerTest {
                         .content(corpo("89.90", "DESPESA")))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404));
+    }
+
+    @Test
+    void deveAceitarTransacaoSemObservacoes() throws Exception {
+        when(transacaoService.criar(eq(userId), any(TransacaoRequest.class)))
+                .thenReturn(respostaPadrao(UUID.randomUUID()));
+
+        String semObservacoes = """
+            {"descricao":"Mercado","valor":89.90,"data":"2026-09-05","tipo":"DESPESA","categoriaId":"%s"}
+            """.formatted(categoriaId);
+
+        mockMvc.perform(post("/transacoes")
+                        .with(logado())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(semObservacoes))
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    void deveRetornar400QuandoObservacoesPassaremDe500Caracteres() throws Exception {
+        String longa = """
+            {"descricao":"Mercado","valor":89.90,"data":"2026-09-05","tipo":"DESPESA","categoriaId":"%s","observacoes":"%s"}
+            """.formatted(categoriaId, "a".repeat(501));
+
+        mockMvc.perform(post("/transacoes")
+                        .with(logado())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(longa))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(transacaoService);
     }
 
     // ---------- ATUALIZAR ----------

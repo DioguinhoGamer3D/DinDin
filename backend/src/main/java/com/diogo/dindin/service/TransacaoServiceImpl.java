@@ -49,6 +49,7 @@ public class TransacaoServiceImpl implements TransacaoService {
                 .data(request.data())
                 .tipo(request.tipo())
                 .categoria(categoria)
+                .observacoes(request.observacoes())
                 .user(userRepository.getReferenceById(userId))
                 .build();
 
@@ -67,6 +68,7 @@ public class TransacaoServiceImpl implements TransacaoService {
         transacao.setData(request.data());
         transacao.setTipo(request.tipo());
         transacao.setCategoria(categoria);
+        transacao.setObservacoes(request.observacoes());
 
         return paraResponse(transacaoRepository.save(transacao));
     }
@@ -101,7 +103,8 @@ public class TransacaoServiceImpl implements TransacaoService {
                 t.getData(),
                 t.getTipo(),
                 t.getCategoria().getId(),
-                t.getCategoria().getNome()
+                t.getCategoria().getNome(),
+                t.getObservacoes()
         );
     }
 }

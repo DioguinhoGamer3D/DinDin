@@ -54,6 +54,7 @@ class CategoriaServiceTest {
         assertThat(resultado).hasSize(1);
         assertThat(resultado.get(0).nome()).isEqualTo("Alimentação");
         assertThat(resultado.get(0).tipo()).isEqualTo(TipoTransacao.DESPESA);
+        assertThat(resultado.get(0).cor()).isEqualTo("#EF4444");
     }
 
     // ---------- CRIAR ----------
@@ -69,14 +70,18 @@ class CategoriaServiceTest {
         });
 
         CategoriaResponse resposta = categoriaService.criar(userId,
-                new CategoriaRequest("Salário", TipoTransacao.RECEITA));
+                new CategoriaRequest("Salário", TipoTransacao.RECEITA, "#10B981"));
 
         assertThat(resposta.id()).isNotNull();
         assertThat(resposta.nome()).isEqualTo("Salário");
+        assertThat(resposta.cor()).isEqualTo("#10B981");
 
         verify(categoriaRepository).save(argThat(c ->
-                c.getUser().getId().equals(userId) && c.getTipo() == TipoTransacao.RECEITA));
+                c.getUser().getId().equals(userId)
+                        && c.getTipo() == TipoTransacao.RECEITA
+                        && c.getCor().equals("#10B981")));
     }
+
 
     // ---------- ATUALIZAR ----------
 
@@ -85,14 +90,16 @@ class CategoriaServiceTest {
         Categoria existente = criarCategoria("Antigo", TipoTransacao.DESPESA);
         when(categoriaRepository.findByIdAndUserId(existente.getId(), userId))
                 .thenReturn(Optional.of(existente));
+        when(transacaoRepository.existsByCategoriaId(existente.getId())).thenReturn(false);
         when(categoriaRepository.save(any(Categoria.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         CategoriaResponse resposta = categoriaService.atualizar(userId, existente.getId(),
-                new CategoriaRequest("Novo", TipoTransacao.RECEITA));
+                new CategoriaRequest("Novo", TipoTransacao.RECEITA, "#3B82F6"));
 
         assertThat(resposta.nome()).isEqualTo("Novo");
         assertThat(resposta.tipo()).isEqualTo(TipoTransacao.RECEITA);
+        assertThat(resposta.cor()).isEqualTo("#3B82F6");
     }
 
     @Test
@@ -101,10 +108,45 @@ class CategoriaServiceTest {
         when(categoriaRepository.findByIdAndUserId(id, userId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> categoriaService.atualizar(userId, id,
-                new CategoriaRequest("Qualquer", TipoTransacao.DESPESA)))
+                new CategoriaRequest("Qualquer", TipoTransacao.DESPESA, "#3B82F6")))
                 .isInstanceOf(RecursoNaoEncontradoException.class);
 
         verify(categoriaRepository, never()).save(any());
+    }
+
+    // ---------- ALTERAR ----------
+
+    @Test
+    void naoDeveAlterarOTipoDeCategoriaEmUso() {
+        Categoria existente = criarCategoria("Mercado", TipoTransacao.DESPESA);
+        when(categoriaRepository.findByIdAndUserId(existente.getId(), userId))
+                .thenReturn(Optional.of(existente));
+        when(transacaoRepository.existsByCategoriaId(existente.getId())).thenReturn(true);
+
+        assertThatThrownBy(() -> categoriaService.atualizar(userId, existente.getId(),
+                new CategoriaRequest("Mercado", TipoTransacao.RECEITA, "#EF4444")))
+                .isInstanceOf(CategoriaEmUsoException.class);
+
+        verify(categoriaRepository, never()).save(any());
+        assertThat(existente.getTipo()).isEqualTo(TipoTransacao.DESPESA);
+    }
+
+    @Test
+    void deveAlterarNomeECorDeCategoriaEmUsoSemMudarOTipo() {
+        Categoria existente = criarCategoria("Mercado", TipoTransacao.DESPESA);
+        when(categoriaRepository.findByIdAndUserId(existente.getId(), userId))
+                .thenReturn(Optional.of(existente));
+        // lenient: o teste falha se o service bloquear por engano, sem reclamar se ele nem consultar
+        lenient().when(transacaoRepository.existsByCategoriaId(existente.getId())).thenReturn(true);
+        when(categoriaRepository.save(any(Categoria.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        CategoriaResponse resposta = categoriaService.atualizar(userId, existente.getId(),
+                new CategoriaRequest("Supermercado", TipoTransacao.DESPESA, "#3B82F6"));
+
+        assertThat(resposta.nome()).isEqualTo("Supermercado");
+        assertThat(resposta.cor()).isEqualTo("#3B82F6");
+        assertThat(resposta.tipo()).isEqualTo(TipoTransacao.DESPESA);
     }
 
     // ---------- DELETAR ----------
@@ -132,14 +174,6 @@ class CategoriaServiceTest {
         verify(categoriaRepository, never()).delete(any());
     }
 
-    private Categoria criarCategoria(String nome, TipoTransacao tipo) {
-        return Categoria.builder()
-                .id(UUID.randomUUID())
-                .nome(nome)
-                .tipo(tipo)
-                .build();
-    }
-
     @Test
     void naoDeveDeletarCategoriaEmUso() {
         Categoria existente = criarCategoria("Mercado", TipoTransacao.DESPESA);
@@ -151,5 +185,14 @@ class CategoriaServiceTest {
                 .isInstanceOf(CategoriaEmUsoException.class);
 
         verify(categoriaRepository, never()).delete(any());
+    }
+
+    private Categoria criarCategoria(String nome, TipoTransacao tipo) {
+        return Categoria.builder()
+                .id(UUID.randomUUID())
+                .nome(nome)
+                .tipo(tipo)
+                .cor("#EF4444")
+                .build();
     }
 }

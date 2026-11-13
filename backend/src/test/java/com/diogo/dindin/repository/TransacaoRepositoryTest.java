@@ -42,7 +42,7 @@ class TransacaoRepositoryTest extends IntegrationTestBase {
 
     private Categoria criarCategoria(String nome, User dono) {
         return Categoria.builder()
-                .nome(nome).tipo(TipoTransacao.DESPESA).user(dono).build();
+                .nome(nome).tipo(TipoTransacao.DESPESA).user(dono).cor("#10B981").build();
     }
 
     private Transacao criarTransacao(User user, Categoria categoria, LocalDate data, BigDecimal valor) {

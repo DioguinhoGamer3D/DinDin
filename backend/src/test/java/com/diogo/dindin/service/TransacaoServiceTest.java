@@ -85,9 +85,12 @@ class TransacaoServiceTest {
         assertThat(resposta.id()).isNotNull();
         assertThat(resposta.categoriaId()).isEqualTo(categoria.getId());
         assertThat(resposta.categoriaNome()).isEqualTo("Mercado");
+        assertThat(resposta.observacoes()).isEqualTo("Compras do mês");
 
         verify(transacaoRepository).save(argThat(t ->
-                t.getUser().getId().equals(userId) && t.getCategoria() == categoria));
+                t.getUser().getId().equals(userId)
+                        && t.getCategoria() == categoria
+                        && "Compras do mês".equals(t.getObservacoes())));
     }
 
     @Test
@@ -97,7 +100,7 @@ class TransacaoServiceTest {
 
         TransacaoRequest request = new TransacaoRequest(
                 "Mercado", new BigDecimal("10.00"), LocalDate.of(2026, 9, 5),
-                TipoTransacao.DESPESA, categoriaId);
+                TipoTransacao.DESPESA, categoriaId, null);
 
         assertThatThrownBy(() -> transacaoService.criar(userId, request))
                 .isInstanceOf(RecursoNaoEncontradoException.class);
@@ -134,13 +137,14 @@ class TransacaoServiceTest {
 
         TransacaoRequest request = new TransacaoRequest(
                 "Feira", new BigDecimal("45.50"), LocalDate.of(2026, 9, 12),
-                TipoTransacao.DESPESA, categoria.getId());
+                TipoTransacao.DESPESA, categoria.getId(), "Feira de sábado");
 
         TransacaoResponse resposta = transacaoService.atualizar(userId, existente.getId(), request);
 
         assertThat(resposta.descricao()).isEqualTo("Feira");
         assertThat(resposta.valor()).isEqualByComparingTo("45.50");
         assertThat(resposta.data()).isEqualTo(LocalDate.of(2026, 9, 12));
+        assertThat(resposta.observacoes()).isEqualTo("Feira de sábado");
     }
 
     @Test
@@ -168,7 +172,7 @@ class TransacaoServiceTest {
 
         TransacaoRequest request = new TransacaoRequest(
                 "Qualquer", new BigDecimal("10.00"), LocalDate.of(2026, 9, 5),
-                TipoTransacao.DESPESA, categoriaAlheia);
+                TipoTransacao.DESPESA, categoriaAlheia, null);
 
         assertThatThrownBy(() -> transacaoService.atualizar(userId, existente.getId(), request))
                 .isInstanceOf(RecursoNaoEncontradoException.class);
@@ -225,6 +229,6 @@ class TransacaoServiceTest {
     private TransacaoRequest criarRequest(Categoria categoria, TipoTransacao tipo) {
         return new TransacaoRequest(
                 "Compras", new BigDecimal("89.90"), LocalDate.of(2026, 9, 5),
-                tipo, categoria.getId());
+                tipo, categoria.getId(), "Compras do mês");
     }
 }
