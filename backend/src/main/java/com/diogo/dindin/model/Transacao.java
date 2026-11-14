@@ -40,6 +40,9 @@ public class Transacao {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Column(length = 500)
+    private String observacoes;
+
     @Column(name = "criado_em", nullable = false, updatable = false)
     private LocalDateTime criadoEm;
 

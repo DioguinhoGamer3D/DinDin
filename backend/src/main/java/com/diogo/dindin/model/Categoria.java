@@ -24,6 +24,9 @@ public class Categoria {
     @Column(nullable = false, length = 10)
     private TipoTransacao tipo;
 
+    @Column(nullable = false, length = 7)
+    private String cor;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
